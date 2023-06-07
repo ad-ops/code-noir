@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Greyscale WASM</title>
+  </head>
+  <body>
+    <h2>Greyscale image using Rust/WASM</h2>
+    <img id="color-image" width="20%" height="20%" alt="color-image"></img>
+    <img id="grey-image" width="20%" height="20%" alt="greyscale-image"></img>
+    <h4>Upload and grey-scale</h4>
+    <input type="file" id="img-input" name="img" accept="image/*" >
+
+    <script type="module">
+        import init, { greyscale_image } from "./pkg/code_noir.js";
+        init().then(() => {
+            // get color image and greyscale it
+            async function greyify() {
+                const colorImageSrc = document.getElementById("color-image").src;
+                const colorImageBlob = await (await fetch(colorImageSrc)).blob();
+                const colorImageArray = new Uint8Array(await colorImageBlob.arrayBuffer());
+
+                console.time("greyscaling");
+                const greyImage = greyscale_image(colorImageArray);
+                console.timeEnd("greyscaling");
+
+                document.getElementById("grey-image").src = URL.createObjectURL(
+                    new Blob([greyImage.buffer], { type: 'image/png' } /* (1) */)
+                );
+            }
+            
+            // upload image and greyscale a copy
+            document.getElementById('img-input').addEventListener('change', (el) => {
+                const file = document.getElementById('img-input').files[0];
+                document.getElementById('color-image').src = window.URL.createObjectURL(file);
+                greyify();
+            });
+        });
+    </script>
+  </body>
+</html>
